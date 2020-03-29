@@ -1,0 +1,42 @@
+#include "Adafruit_DHT.h"
+
+
+#define DHTPIN 2     // what pin we're connected to
+
+#define DHTTYPE DHT11		// DHT 11 
+
+DHT dht(DHTPIN, DHTTYPE);
+int high = 0;
+
+void setup() {
+	dht.begin();
+	Particle.variable("high", &high, INT);
+}
+
+void loop() {
+// Wait a few seconds between measurements.
+	delay(30000);
+
+// Read temperature as Celsius
+	double temp = dht.getTempCelcius();
+	
+	if(String(temp) == "0.000000")
+	{
+	    return;
+	}
+	
+	//Only updates high value to yes/1 if it isn't yes already this stops it from constantly emailing
+	//me about updates
+	if(temp >= 30 && high != 1)
+	{
+	    high = 1;
+	}
+	else if (temp < 30)
+	{
+	    high = 0;
+	}
+	
+    Particle.publish("temp", String(temp), PRIVATE);
+    Particle.publish("high", String(high), PRIVATE);
+    
+}
